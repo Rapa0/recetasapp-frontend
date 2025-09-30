@@ -1,10 +1,10 @@
 import React, { useState, useCallback } from 'react';
 import { View, Text, StyleSheet, Alert, ActivityIndicator, ScrollView } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
-import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import CustomButton from '../../components/CustomButton';
 import Icon from 'react-native-vector-icons/Ionicons';
+import apiClient from '../../api/axios';
 
 const ProfileScreen = () => {
   const navigation = useNavigation();
@@ -16,13 +16,7 @@ const ProfileScreen = () => {
       const fetchData = async () => {
         setLoading(true);
         try {
-          const userInfo = JSON.parse(await AsyncStorage.getItem('userInfo'));
-          if (!userInfo?.token) {
-              throw new Error('Token no encontrado');
-          }
-          const profileResponse = await axios.get('https://recetasapp-backend-production.up.railway.app/api/users/profile', {
-            headers: { Authorization: `Bearer ${userInfo.token}` },
-          });
+          const profileResponse = await apiClient.get('/users/profile');
           setUser(profileResponse.data);
         } catch (error) {
           Alert.alert('Error', 'No se pudo cargar el perfil.');
@@ -31,33 +25,47 @@ const ProfileScreen = () => {
           setLoading(false);
         }
       };
-      fetchData();
+      
+      const setupInterceptorAndFetch = async () => {
+           const userInfoString = await AsyncStorage.getItem('userInfo');
+           if (!userInfoString) {
+               navigation.navigate('SignIn');
+               return;
+           }
+           const userInfo = JSON.parse(userInfoString);
+           apiClient.defaults.headers.common.Authorization = `Bearer ${userInfo.token}`;
+           fetchData();
+      }
+      setupInterceptorAndFetch();
     }, [navigation])
   );
   
   const onLogoutPressed = async () => {
     await AsyncStorage.removeItem('userInfo');
-    navigation.navigate('SignIn');
+    navigation.reset({
+        index: 0,
+        routes: [{ name: 'SignIn' }],
+    });
   };
   
   const onDeletePressed = () => {
     Alert.alert(
         'Borrar Cuenta',
-        '¿Estás seguro? Esta acción es permanente y eliminará tu cuenta y todas tus recetas.',
+        '¿Estás seguro? Esta acción es permanente y eliminará tu cuenta, tus recetas y tus grupos.',
         [
             {text: 'Cancelar', style: 'cancel'},
             {
-                text: 'Sí, Borrar',
+                text: 'Sí, Borrar Todo',
                 style: 'destructive',
                 onPress: async () => {
                     try {
-                        const userInfo = JSON.parse(await AsyncStorage.getItem('userInfo'));
-                        await axios.delete('https://recetasapp-backend-production.up.railway.app/api/users/profile', {
-                            headers: { Authorization: `Bearer ${userInfo.token}` }
-                        });
+                        await apiClient.delete('/users/profile');
                         await AsyncStorage.clear();
-                        navigation.navigate('SignIn');
                         Alert.alert('Éxito', 'Tu cuenta ha sido eliminada.');
+                        navigation.reset({
+                            index: 0,
+                            routes: [{ name: 'SignIn' }],
+                        });
                     } catch (error) {
                         Alert.alert('Error', 'No se pudo eliminar la cuenta.');
                     }
@@ -80,6 +88,13 @@ const ProfileScreen = () => {
       </View>
 
       <View style={styles.menu}>
+        <CustomButton 
+          text="Ver Recetas" 
+          onPress={() => navigation.navigate('Home')} 
+          type="TERTIARY" 
+          fgColor="#333" 
+          icon="restaurant-outline"
+        />
         <CustomButton 
           text="Mis Grupos" 
           onPress={() => navigation.navigate('Groups')} 

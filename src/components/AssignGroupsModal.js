@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, Modal, FlatList, TouchableOpacity, Alert } from 'react-native';
-import axios from 'axios';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import apiClient from '../api/axios'; 
 import CustomButton from './CustomButton';
 import CustomInput from './CustomInput';
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -11,18 +10,10 @@ const AssignGroupsModal = ({ recipe, isVisible, onClose, onSave }) => {
   const [selectedGroups, setSelectedGroups] = useState([]);
   const [newGroupName, setNewGroupName] = useState('');
 
+
   const fetchGroups = useCallback(async () => {
     try {
-      const userInfoString = await AsyncStorage.getItem('userInfo');
-      if (!userInfoString) {
-          Alert.alert('Error', 'No se pudo obtener la información del usuario.');
-          return;
-      }
-      const userInfo = JSON.parse(userInfoString);
-      
-      const response = await axios.get('recetasapp-backend-production.up.railway.app/api/groups/mygroups', {
-        headers: { Authorization: `Bearer ${userInfo.token}` },
-      });
+      const response = await apiClient.get('/groups/mygroups'); 
       setUserGroups(response.data);
 
       if (recipe) {
@@ -30,6 +21,7 @@ const AssignGroupsModal = ({ recipe, isVisible, onClose, onSave }) => {
         setSelectedGroups(initialGroupIds);
       }
     } catch (error) {
+      console.error("Error al cargar grupos:", error); 
       Alert.alert('Error', 'No se pudieron cargar los grupos');
     }
   }, [recipe]);
@@ -52,23 +44,14 @@ const AssignGroupsModal = ({ recipe, isVisible, onClose, onSave }) => {
     onSave(selectedGroups);
   };
 
+
   const handleCreateGroup = async () => {
     if (!newGroupName) {
         Alert.alert('Error', 'El nombre no puede estar vacío.');
         return;
     }
     try {
-      const userInfoString = await AsyncStorage.getItem('userInfo');
-      if (!userInfoString) {
-        Alert.alert('Error', 'Debes iniciar sesión para crear un grupo.');
-        return;
-      }
-      const userInfo = JSON.parse(userInfoString);
-      await axios.post(
-        'recetasapp-backend-production.up.railway.app/api/groups',
-        { name: newGroupName },
-        { headers: { Authorization: `Bearer ${userInfo.token}` } }
-      );
+      await apiClient.post('/groups', { name: newGroupName });
       setNewGroupName(''); 
       fetchGroups(); 
     } catch (error) {

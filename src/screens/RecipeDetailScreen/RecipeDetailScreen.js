@@ -1,11 +1,13 @@
 import React, { useState, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, Alert, ActivityIndicator, Image, TouchableOpacity } from 'react-native';
 import { useRoute, useNavigation, useFocusEffect } from '@react-navigation/native';
-import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import CustomButton from '../../components/CustomButton';
 import Icon from 'react-native-vector-icons/Ionicons';
 import AssignGroupsModal from '../../components/AssignGroupsModal';
+
+// 1. Usamos apiClient en lugar de axios para las peticiones
+import apiClient from '../../api/axios';
 
 const RecipeDetailScreen = () => {
   const route = useRoute();
@@ -28,7 +30,7 @@ const RecipeDetailScreen = () => {
           const info = await AsyncStorage.getItem('userInfo');
           if (info) setUserInfo(JSON.parse(info));
           
-          const recipeRes = await axios.get(`https://recetasapp-backend-production.up.railway.app/api/recipes/${recipeId}`);
+          const recipeRes = await apiClient.get(`/recipes/${recipeId}`);
           setRecipe(recipeRes.data);
           setLikeCount(recipeRes.data.likes.length);
 
@@ -45,86 +47,63 @@ const RecipeDetailScreen = () => {
         }
       };
       loadRecipeData();
-      return () => {};
     }, [recipeId, navigation])
   );
 
   const onLikePressed = async () => {
     try {
-        const token = userInfo?.token;
-        if (!token) {
-            return Alert.alert('Error', 'Debes iniciar sesión para dar Me Gusta.');
-        }
-        const response = await axios.post(`https://recetasapp-backend-production.up.railway.app/api/recipes/${recipeId}/like`, {}, {
-            headers: { Authorization: `Bearer ${token}` }
-        });
-        setIsLiked(!isLiked);
-        setLikeCount(response.data.likes.length);
+      const response = await apiClient.post(`/recipes/${recipeId}/like`);
+      setIsLiked(!isLiked);
+      setLikeCount(response.data.likes.length);
     } catch (error) {
-        Alert.alert('Error', 'Ocurrió un error al dar Me Gusta.');
+      Alert.alert('Error', 'Debes iniciar sesión para dar Me Gusta.');
     }
   };
   
   const onDeletePressed = () => {
-    Alert.alert(
-      'Confirmar Borrado',
-      '¿Estás seguro de que quieres eliminar esta receta?',
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Eliminar',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              const token = userInfo?.token;
-              await axios.delete(`https://recetasapp-backend-production.up.railway.app/api/recipes/${recipeId}`, {
-                headers: { Authorization: `Bearer ${token}` }
-              });
-              Alert.alert('Éxito', 'Receta eliminada.');
-              navigation.goBack();
-            } catch (error) {
-              Alert.alert('Error', 'No se pudo eliminar la receta.');
-            }
-          },
+    Alert.alert('Confirmar Borrado', '¿Estás seguro?', [
+      { text: 'Cancelar', style: 'cancel' },
+      {
+        text: 'Eliminar',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await apiClient.delete(`/recipes/${recipeId}`);
+            Alert.alert('Éxito', 'Receta eliminada.');
+            navigation.goBack();
+          } catch (error) {
+            Alert.alert('Error', 'No se pudo eliminar la receta.');
+          }
         },
-      ]
-    );
+      },
+    ]);
   };
   
   const refreshData = async () => {
     try {
-        const recipeRes = await axios.get(`https://recetasapp-backend-production.up.railway.app/api/recipes/${recipeId}`);
-        setRecipe(recipeRes.data);
+      const recipeRes = await apiClient.get(`/recipes/${recipeId}`);
+      setRecipe(recipeRes.data);
     } catch (error) {
-        console.error("No se pudo refrescar la receta", error);
+      console.error("No se pudo refrescar la receta", error);
     }
   };
 
   const handleUpdateGroups = async (newGroupIds) => {
     try {
-      const token = userInfo?.token;
-      if (!token) { return Alert.alert('Error', 'Debes iniciar sesión.'); }
-
       const originalGroupIds = recipe.groups.map(g => typeof g === 'object' ? g._id : g);
-
       const groupsToAdd = newGroupIds.filter(id => !originalGroupIds.includes(id));
       const groupsToRemove = originalGroupIds.filter(id => !newGroupIds.includes(id));
-      
-      const config = { headers: { Authorization: `Bearer ${token}` } };
 
       const addPromises = groupsToAdd.map(groupId =>
-        axios.post(`https://recetasapp-backend-production.up.railway.app/api/groups/${groupId}/addRecipe`, { recipeId }, config)
+        apiClient.post(`/groups/${groupId}/addRecipe`, { recipeId })
       );
-      
       const removePromises = groupsToRemove.map(groupId =>
-        axios.post(`https://recetasapp-backend-production.up.railway.app/api/groups/${groupId}/removeRecipe`, { recipeId }, config)
+        apiClient.post(`/groups/${groupId}/removeRecipe`, { recipeId })
       );
 
       await Promise.all([...addPromises, ...removePromises]);
-
       setGroupModalVisible(false);
       refreshData(); 
-
     } catch (error) {
       Alert.alert('Error', 'No se pudieron actualizar los grupos. Verifica que seas el dueño de los grupos seleccionados.');
     }
@@ -141,6 +120,10 @@ const RecipeDetailScreen = () => {
 
   return (
     <>
+      <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+        <Icon name="arrow-back" size={28} color="#fff" />
+      </TouchableOpacity>
+
       <ScrollView style={styles.container}>
         <Image 
           source={{uri: recipe.imageUrl || `https://source.unsplash.com/random/400x300/?food,${recipe.title.replace(/\s/g, ',')}`}} 
@@ -210,7 +193,17 @@ const RecipeDetailScreen = () => {
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: '#fff' },
     loader: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-    image: { width: '100%', height: 250 },
+
+    backButton: {
+      position: 'absolute',
+      top: 40, 
+      left: 15,
+      zIndex: 10,
+      backgroundColor: 'rgba(0, 0, 0, 0.4)',
+      padding: 8,
+      borderRadius: 20,
+    },
+    image: { width: '100%', height: 300 },
     headerContainer: { padding: 20, paddingBottom: 10 },
     title: { fontSize: 28, fontWeight: 'bold', color: '#333' },
     authorContainer: { flexDirection: 'row', alignItems: 'center', marginTop: 8 },

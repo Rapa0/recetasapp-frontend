@@ -1,25 +1,40 @@
 import React from 'react';
 import {Text, StyleSheet, ScrollView, Alert, View} from 'react-native';
-import {useNavigation} from '@react-navigation/native';
-import axios from 'axios';
+import {useNavigation, useRoute} from '@react-navigation/native';
+import apiClient from '../../api/axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import CustomInput from '../../components/CustomInput';
 import CustomButton from '../../components/CustomButton';
 
 const ConfirmEmailScreen = () => {
   const navigation = useNavigation();
+  const route = useRoute();
   const [code, setCode] = React.useState('');
+  const [loading, setLoading] = React.useState(false);
+
+  const { registrationToken } = route.params;
 
   const onConfirmPressed = async () => {
     if (!code) {
         Alert.alert('Error', 'Por favor, introduce el código de tu correo');
         return;
     }
+    setLoading(true);
     try {
-        await axios.post('https://recetasapp-backend-production.up.railway.app/api/auth/confirmemail', {token: code});
-        Alert.alert('Éxito', 'Tu cuenta ha sido confirmada. Ahora puedes iniciar sesión.');
-        navigation.navigate('SignIn');
+        const response = await apiClient.post('/auth/confirmEmail', {
+          code: code,
+          registrationToken: registrationToken,
+        });
+        
+        await AsyncStorage.setItem('userInfo', JSON.stringify(response.data));
+
+        Alert.alert('¡Éxito!', 'Tu cuenta ha sido confirmada. ¡Bienvenido!');
+        
+        navigation.replace('Home');
     } catch (error) {
         Alert.alert('Error', error.response?.data?.message || 'El código es incorrecto o ha expirado.');
+    } finally {
+        setLoading(false);
     }
   };
 
@@ -28,7 +43,9 @@ const ConfirmEmailScreen = () => {
   };
 
   const onResendPress = () => {
-    console.warn('Reenviar código presionado (funcionalidad no implementada)');
+    Alert.alert('Reenviar Código', 'Para recibir un nuevo código, por favor, vuelve a la pantalla de registro e introduce tus datos de nuevo.', [
+      { text: 'OK', onPress: () => navigation.navigate('SignUp') }
+    ]);
   };
 
   return (
@@ -39,8 +56,9 @@ const ConfirmEmailScreen = () => {
                 placeholder="Introduce tu código de confirmación"
                 value={code}
                 setValue={setCode}
+                keyboardType="numeric"
             />
-            <CustomButton text="Confirmar" onPress={onConfirmPressed} />
+            <CustomButton text={loading ? "Confirmando..." : "Confirmar"} onPress={onConfirmPressed} disabled={loading} />
             <CustomButton
                 text="Reenviar código"
                 onPress={onResendPress}

@@ -19,6 +19,9 @@ import GroupsScreen from '../screens/GroupsScreen/GroupsScreen';
 import AddEditGroupScreen from '../screens/AddEditGroupScreen/AddEditGroupScreen';
 import GroupDetailScreen from '../screens/GroupDetailScreen/GroupDetailScreen';
 
+// --- 1. IMPORTAR LA NUEVA PANTALLA ---
+import VerifyEmailChangeScreen from '../screens/VerifyEmailChangeScreen/VerifyEmailChangeScreen';
+
 const Stack = createNativeStackNavigator();
 
 const Navigation = () => {
@@ -44,6 +47,9 @@ const Navigation = () => {
         <Stack.Screen name="AddRecipe" component={AddRecipeScreen} />
         <Stack.Screen name="RecipeDetail" component={RecipeDetailScreen} />
         <Stack.Screen name="EditRecipe" component={EditRecipeScreen} />
+        
+        <Stack.Screen name="VerifyEmailChange" component={VerifyEmailChangeScreen} />
+
       </Stack.Navigator>
     </NavigationContainer>
   );

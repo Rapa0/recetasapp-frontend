@@ -1,7 +1,7 @@
 import React from 'react';
 import {Text, StyleSheet, ScrollView, Alert} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
-import axios from 'axios';
+import apiClient from '../../api/axios';
 import CustomInput from '../../components/CustomInput';
 import CustomButton from '../../components/CustomButton';
 import SocialSignInButtons from '../../components/SocialSignInButtons';
@@ -13,13 +13,11 @@ const SignUpScreen = () => {
   const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
   const [passwordRepeat, setPasswordRepeat] = React.useState('');
+  const [loading, setLoading] = React.useState(false);
 
   const onRegisterPressed = async () => {
     if (password.length < 6) {
-      Alert.alert(
-        'Contraseña Débil',
-        'La contraseña debe tener al menos 6 caracteres',
-      );
+      Alert.alert('Contraseña Débil', 'La contraseña debe tener al menos 6 caracteres');
       return;
     }
     if (password !== passwordRepeat) {
@@ -27,24 +25,25 @@ const SignUpScreen = () => {
       return;
     }
 
+    setLoading(true);
     try {
-      await axios.post(
-        'https://recetasapp-backend-production.up.railway.app/api/auth/register',
-        {
+      const response = await apiClient.post('/auth/register', {
           username,
           email,
           password,
-        },
+        }
       );
       
-      navigation.navigate('ConfirmEmail');
+      const { registrationToken } = response.data;
+      
+      Alert.alert('Casi Listo', 'Hemos enviado un código de confirmación a tu correo.');
+      navigation.navigate('ConfirmEmail', { registrationToken: registrationToken });
 
     } catch (error) {
       console.error(error.response ? error.response.data : error.message);
-      Alert.alert(
-        'Error de Registro',
-        error.response?.data?.message || 'Ocurrió un error',
-      );
+      Alert.alert('Error de Registro', error.response?.data?.message || 'Ocurrió un error');
+    } finally {
+        setLoading(false);
     }
   };
 
@@ -52,62 +51,27 @@ const SignUpScreen = () => {
     navigation.navigate('SignIn');
   };
 
-  const onTermsOfUsePressed = () => {
-    console.warn('Términos de Uso presionado');
-  };
-
-  const onPrivacyPolicyPressed = () => {
-    console.warn('Política de Privacidad presionado');
-  };
+  const onTermsOfUsePressed = () => console.warn('Términos de Uso presionado');
+  const onPrivacyPolicyPressed = () => console.warn('Política de Privacidad presionado');
 
   return (
     <ScrollView contentContainerStyle={styles.root}>
       <Text style={styles.title}>Crear una cuenta</Text>
-
-      <CustomInput
-        placeholder="Nombre de Usuario"
-        value={username}
-        setValue={setUsername}
-      />
-      <CustomInput
-        placeholder="Correo Electrónico"
-        value={email}
-        setValue={setEmail}
-      />
-      <CustomInput
-        placeholder="Contraseña"
-        value={password}
-        setValue={setPassword}
-        secureTextEntry
-      />
-      <CustomInput
-        placeholder="Repetir Contraseña"
-        value={passwordRepeat}
-        setValue={setPasswordRepeat}
-        secureTextEntry
-      />
-
-      <CustomButton text="Registrarse" onPress={onRegisterPressed} />
+      <CustomInput placeholder="Nombre de Usuario" value={username} setValue={setUsername} />
+      <CustomInput placeholder="Correo Electrónico" value={email} setValue={setEmail} keyboardType="email-address" />
+      <CustomInput placeholder="Contraseña" value={password} setValue={setPassword} secureTextEntry />
+      <CustomInput placeholder="Repetir Contraseña" value={passwordRepeat} setValue={setPasswordRepeat} secureTextEntry />
+      <CustomButton text={loading ? "Registrando..." : "Registrarse"} onPress={onRegisterPressed} disabled={loading} />
 
       <Text style={styles.text}>
         Al registrarte, confirmas que aceptas nuestros{' '}
-        <Text style={styles.link} onPress={onTermsOfUsePressed}>
-          Términos de Uso
-        </Text>{' '}
+        <Text style={styles.link} onPress={onTermsOfUsePressed}>Términos de Uso</Text>{' '}
         y nuestra{' '}
-        <Text style={styles.link} onPress={onPrivacyPolicyPressed}>
-          Política de Privacidad
-        </Text>
-        .
+        <Text style={styles.link} onPress={onPrivacyPolicyPressed}>Política de Privacidad</Text>.
       </Text>
 
       <SocialSignInButtons />
-
-      <CustomButton
-        text="¿Ya tienes una cuenta? Inicia Sesión"
-        onPress={onSignInPress}
-        type="TERTIARY"
-      />
+      <CustomButton text="¿Ya tienes una cuenta? Inicia Sesión" onPress={onSignInPress} type="TERTIARY" />
     </ScrollView>
   );
 };
