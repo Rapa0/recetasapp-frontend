@@ -16,8 +16,7 @@ const AddRecipeScreen = () => {
     const [instructions, setInstructions] = useState('');
     const [imageData, setImageData] = useState(null);
     const [imageUri, setImageUri] = useState(null);
-    
-    // MEJORA: Añadimos un estado de carga para dar feedback visual al usuario durante la subida.
+
     const [loading, setLoading] = useState(false);
 
     const handleChoosePhoto = () => {
@@ -47,9 +46,8 @@ const AddRecipeScreen = () => {
             return;
         }
 
-        setLoading(true); // Inicia la carga
+        setLoading(true); 
         try {
-            // MEJORA: Verificación más segura de la sesión de usuario.
             const userInfoString = await AsyncStorage.getItem('userInfo');
             if (!userInfoString) {
                 Alert.alert('Error', 'No estás autenticado. Por favor, inicia sesión de nuevo.');
@@ -59,7 +57,7 @@ const AddRecipeScreen = () => {
             const token = userInfo?.token;
 
             await axios.post(
-                'http://10.0.2.2:5000/api/recipes',
+                'recetasapp-backend-production.up.railway.app/api/recipes',
                 { 
                     title, 
                     description, 
@@ -70,7 +68,6 @@ const AddRecipeScreen = () => {
                 { headers: { Authorization: `Bearer ${token}` } }
             );
 
-            // MEJORA: Alerta de éxito para mejor feedback al usuario antes de navegar.
             Alert.alert('¡Éxito!', 'Tu receta ha sido creada correctamente.', [
                 { text: 'OK', onPress: () => navigation.navigate('Home') }
             ]);
@@ -79,11 +76,11 @@ const AddRecipeScreen = () => {
             console.error(error.response || error);
             Alert.alert('Error', error.response?.data?.message || 'No se pudo crear la receta.');
         } finally {
-            setLoading(false); // Finaliza la carga, tanto si tuvo éxito como si falló.
+            setLoading(false); 
         }
     };
 
-    // Si está cargando, mostramos un indicador en toda la pantalla
+
     if (loading) {
         return (
             <View style={styles.loaderContainer}>

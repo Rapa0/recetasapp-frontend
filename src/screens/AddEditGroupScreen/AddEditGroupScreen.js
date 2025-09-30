@@ -27,14 +27,14 @@ const AddEditGroupScreen = () => {
       if (group) {
         // Lógica para Editar
         await axios.put(
-          `http://10.0.2.2:5000/api/groups/${group._id}`,
+          `recetasapp-backend-production.up.railway.app/api/groups/${group._id}`,
           { name },
           { headers: { Authorization: `Bearer ${token}` } },
         );
       } else {
         // Lógica para Crear
         await axios.post(
-          'http://10.0.2.2:5000/api/groups',
+          'recetasapp-backend-production.up.railway.app/api/groups',
           { name },
           { headers: { Authorization: `Bearer ${token}` } },
         );

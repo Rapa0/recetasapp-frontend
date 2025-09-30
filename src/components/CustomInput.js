@@ -37,11 +37,11 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     paddingHorizontal: 10,
     marginVertical: 5,
-    flexDirection: 'row', // Para alinear el input y el icono
+    flexDirection: 'row', 
     alignItems: 'center',
   },
   input: {
-    flex: 1, // Para que el input ocupe todo el espacio posible
+    flex: 1, 
     height: 50,
   },
   icon: {

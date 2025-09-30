@@ -28,7 +28,7 @@ const RecipeDetailScreen = () => {
           const info = await AsyncStorage.getItem('userInfo');
           if (info) setUserInfo(JSON.parse(info));
           
-          const recipeRes = await axios.get(`http://10.0.2.2:5000/api/recipes/${recipeId}`);
+          const recipeRes = await axios.get(`recetasapp-backend-production.up.railway.app/api/recipes/${recipeId}`);
           setRecipe(recipeRes.data);
           setLikeCount(recipeRes.data.likes.length);
 
@@ -55,7 +55,7 @@ const RecipeDetailScreen = () => {
         if (!token) {
             return Alert.alert('Error', 'Debes iniciar sesión para dar Me Gusta.');
         }
-        const response = await axios.post(`http://10.0.2.2:5000/api/recipes/${recipeId}/like`, {}, {
+        const response = await axios.post(`recetasapp-backend-production.up.railway.app/api/recipes/${recipeId}/like`, {}, {
             headers: { Authorization: `Bearer ${token}` }
         });
         setIsLiked(!isLiked);
@@ -77,7 +77,7 @@ const RecipeDetailScreen = () => {
           onPress: async () => {
             try {
               const token = userInfo?.token;
-              await axios.delete(`http://10.0.2.2:5000/api/recipes/${recipeId}`, {
+              await axios.delete(`recetasapp-backend-production.up.railway.app/api/recipes/${recipeId}`, {
                 headers: { Authorization: `Bearer ${token}` }
               });
               Alert.alert('Éxito', 'Receta eliminada.');
@@ -93,7 +93,7 @@ const RecipeDetailScreen = () => {
   
   const refreshData = async () => {
     try {
-        const recipeRes = await axios.get(`http://10.0.2.2:5000/api/recipes/${recipeId}`);
+        const recipeRes = await axios.get(`recetasapp-backend-production.up.railway.app/api/recipes/${recipeId}`);
         setRecipe(recipeRes.data);
     } catch (error) {
         console.error("No se pudo refrescar la receta", error);
@@ -105,29 +105,25 @@ const RecipeDetailScreen = () => {
       const token = userInfo?.token;
       if (!token) { return Alert.alert('Error', 'Debes iniciar sesión.'); }
 
-      // 1. Obtener los IDs de los grupos originales de la receta
       const originalGroupIds = recipe.groups.map(g => typeof g === 'object' ? g._id : g);
 
-      // 2. Calcular qué grupos añadir y qué grupos quitar
       const groupsToAdd = newGroupIds.filter(id => !originalGroupIds.includes(id));
       const groupsToRemove = originalGroupIds.filter(id => !newGroupIds.includes(id));
       
       const config = { headers: { Authorization: `Bearer ${token}` } };
 
-      // 3. Crear una lista de promesas para todas las operaciones
       const addPromises = groupsToAdd.map(groupId =>
-        axios.post(`http://10.0.2.2:5000/api/groups/${groupId}/addRecipe`, { recipeId }, config)
+        axios.post(`recetasapp-backend-production.up.railway.app/api/groups/${groupId}/addRecipe`, { recipeId }, config)
       );
       
       const removePromises = groupsToRemove.map(groupId =>
-        axios.post(`http://10.0.2.2:5000/api/groups/${groupId}/removeRecipe`, { recipeId }, config)
+        axios.post(`recetasapp-backend-production.up.railway.app/api/groups/${groupId}/removeRecipe`, { recipeId }, config)
       );
 
-      // 4. Ejecutar todas las promesas en paralelo
       await Promise.all([...addPromises, ...removePromises]);
 
       setGroupModalVisible(false);
-      refreshData(); // Actualizar los datos para reflejar los cambios
+      refreshData(); 
 
     } catch (error) {
       Alert.alert('Error', 'No se pudieron actualizar los grupos. Verifica que seas el dueño de los grupos seleccionados.');

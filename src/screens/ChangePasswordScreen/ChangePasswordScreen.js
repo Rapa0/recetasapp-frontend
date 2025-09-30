@@ -21,7 +21,7 @@ const ChangePasswordScreen = () => {
         try {
             const userInfo = JSON.parse(await AsyncStorage.getItem('userInfo'));
             await axios.put(
-                'http://10.0.2.2:5000/api/users/profile/changepassword',
+                'recetasapp-backend-production.up.railway.app/api/users/profile/changepassword',
                 { oldPassword, newPassword },
                 { headers: { Authorization: `Bearer ${userInfo.token}` } }
             );

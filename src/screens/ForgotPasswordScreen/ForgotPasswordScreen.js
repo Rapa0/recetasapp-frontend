@@ -11,7 +11,7 @@ const ForgotPasswordScreen = () => {
 
   const onSendPressed = async () => {
     try {
-      await axios.post('http://10.0.2.2:5000/api/auth/forgotpassword', {
+      await axios.post('recetasapp-backend-production.up.railway.app/api/auth/forgotpassword', {
         email: username,
       });
       Alert.alert(

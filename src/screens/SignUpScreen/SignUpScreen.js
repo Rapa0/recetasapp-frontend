@@ -28,9 +28,8 @@ const SignUpScreen = () => {
     }
 
     try {
-      // Corregimos la línea para no guardar la respuesta
       await axios.post(
-        'http://10.0.2.2:5000/api/auth/register',
+        'recetasapp-backend-production.up.railway.app/api/auth/register',
         {
           username,
           email,

@@ -20,17 +20,12 @@ const AssignGroupsModal = ({ recipe, isVisible, onClose, onSave }) => {
       }
       const userInfo = JSON.parse(userInfoString);
       
-      // --- CAMBIO PRINCIPAL ---
-      // Se cambió la URL para que solo traiga los grupos del usuario actual
-      const response = await axios.get('http://10.0.2.2:5000/api/groups/mygroups', {
+      const response = await axios.get('recetasapp-backend-production.up.railway.app/api/groups/mygroups', {
         headers: { Authorization: `Bearer ${userInfo.token}` },
       });
       setUserGroups(response.data);
 
       if (recipe) {
-        // --- MEJORA DE ROBUSTEZ ---
-        // Nos aseguramos de que solo se usen los IDs de los grupos,
-        // ya que `recipe.groups` podría contener objetos completos.
         const initialGroupIds = recipe.groups ? recipe.groups.map(g => g._id || g) : [];
         setSelectedGroups(initialGroupIds);
       }
@@ -70,12 +65,12 @@ const AssignGroupsModal = ({ recipe, isVisible, onClose, onSave }) => {
       }
       const userInfo = JSON.parse(userInfoString);
       await axios.post(
-        'http://10.0.2.2:5000/api/groups',
+        'recetasapp-backend-production.up.railway.app/api/groups',
         { name: newGroupName },
         { headers: { Authorization: `Bearer ${userInfo.token}` } }
       );
-      setNewGroupName(''); // Limpia el input
-      fetchGroups(); // Refresca la lista de grupos para incluir el nuevo
+      setNewGroupName(''); 
+      fetchGroups(); 
     } catch (error) {
       Alert.alert('Error', error.response?.data?.message || 'No se pudo crear el grupo.');
     }

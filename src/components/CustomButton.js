@@ -3,7 +3,6 @@ import {Text, StyleSheet, Pressable, View} from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 
 const CustomButton = ({onPress, text, type = 'PRIMARY', bgColor, fgColor, icon}) => {
-  // Lógica para que el color del icono siempre coincida con el del texto
   const textColor = fgColor || (type === 'TERTIARY' ? 'gray' : type === 'SECONDARY' ? '#3B71F3' : 'white');
 
   return (

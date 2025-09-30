@@ -25,7 +25,7 @@ const SignInScreen = () => {
   const onSignInPressed = async () => {
     try {
       const response = await axios.post(
-        'http://10.0.2.2:5000/api/auth/login',
+        'recetasapp-backend-production.up.railway.app/api/auth/login',
         {
           email: username,
           password: password,

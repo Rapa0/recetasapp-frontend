@@ -20,7 +20,7 @@ const ProfileScreen = () => {
           if (!userInfo?.token) {
               throw new Error('Token no encontrado');
           }
-          const profileResponse = await axios.get('http://10.0.2.2:5000/api/users/profile', {
+          const profileResponse = await axios.get('recetasapp-backend-production.up.railway.app/api/users/profile', {
             headers: { Authorization: `Bearer ${userInfo.token}` },
           });
           setUser(profileResponse.data);
@@ -52,7 +52,7 @@ const ProfileScreen = () => {
                 onPress: async () => {
                     try {
                         const userInfo = JSON.parse(await AsyncStorage.getItem('userInfo'));
-                        await axios.delete('http://10.0.2.2:5000/api/users/profile', {
+                        await axios.delete('recetasapp-backend-production.up.railway.app/api/users/profile', {
                             headers: { Authorization: `Bearer ${userInfo.token}` }
                         });
                         await AsyncStorage.clear();

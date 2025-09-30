@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ScrollView, Alert, ActivityIndicator, Image, To
 import { useRoute, useNavigation } from '@react-navigation/native';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { launchImageLibrary } from 'react-native-image-picker'; // Importar
+import { launchImageLibrary } from 'react-native-image-picker'; 
 import CustomInput from '../../components/CustomInput';
 import CustomButton from '../../components/CustomButton';
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -17,20 +17,20 @@ const EditRecipeScreen = () => {
     const [description, setDescription] = useState('');
     const [ingredients, setIngredients] = useState('');
     const [instructions, setInstructions] = useState('');
-    const [imageData, setImageData] = useState(null); // Contiene la base64 de la NUEVA imagen o null si no se selecciona
-    const [imageUri, setImageUri] = useState(null); // URI para previsualización (puede ser URL de Cloudinary o base64)
+    const [imageData, setImageData] = useState(null); 
+    const [imageUri, setImageUri] = useState(null); 
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const fetchRecipe = async () => {
             try {
-                const response = await axios.get(`http://10.0.2.2:5000/api/recipes/${recipeId}`);
+                const response = await axios.get(`recetasapp-backend-production.up.railway.app/api/recipes/${recipeId}`);
                 const recipeData = response.data;
                 setTitle(recipeData.title);
                 setDescription(recipeData.description);
                 setIngredients(recipeData.ingredients.join('\n'));
                 setInstructions(recipeData.instructions);
-                setImageUri(recipeData.imageUrl); // Establece la URL existente de la imagen
+                setImageUri(recipeData.imageUrl); 
             } catch (error) {
                 Alert.alert('Error', 'No se pudo cargar la receta para editar.');
                 navigation.goBack();
@@ -50,8 +50,8 @@ const EditRecipeScreen = () => {
             console.log('ImagePicker Error: ', response.errorCode);
           } else if (response.assets && response.assets.length > 0) {
             const asset = response.assets[0];
-            setImageUri(asset.uri); // Para previsualizar
-            setImageData(`data:${asset.type};base64,${asset.base64}`); // Para enviar al backend
+            setImageUri(asset.uri); 
+            setImageData(`data:${asset.type};base64,${asset.base64}`);
           }
         });
       };
@@ -66,8 +66,8 @@ const EditRecipeScreen = () => {
                     text: "Eliminar", 
                     style: "destructive",
                     onPress: () => {
-                        setImageUri(null); // Quita la previsualización
-                        setImageData(null); // Indica al backend que la imagen debe ser eliminada
+                        setImageUri(null); 
+                        setImageData(null); 
                     }
                 }
             ]
@@ -83,18 +83,14 @@ const EditRecipeScreen = () => {
             const userInfo = JSON.parse(await AsyncStorage.getItem('userInfo'));
             const token = userInfo?.token;
 
-            // Si imageData es null, significa que el usuario quiso eliminarla.
-            // Si imageData tiene valor, es una nueva imagen.
-            // Si imageData no tiene valor (undefined), no se ha tocado y se mantiene la existente.
-            
             await axios.put(
-                `http://10.0.2.2:5000/api/recipes/${recipeId}`,
+                `recetasapp-backend-production.up.railway.app/api/recipes/${recipeId}`,
                 { 
                     title, 
                     description, 
                     ingredients: ingredients.split('\n'), 
                     instructions,
-                    imageData: imageData // Esto enviará la nueva base64, o null si fue eliminada, o undefined si no se tocó
+                    imageData: imageData 
                 },
                 { headers: { Authorization: `Bearer ${token}` } }
             );
@@ -179,7 +175,7 @@ const styles = StyleSheet.create({
         borderWidth: 2,
         borderColor: '#ddd',
         borderStyle: 'dashed',
-        overflow: 'hidden', // Importante para que la imagen no se salga del borde redondeado
+        overflow: 'hidden', 
     },
     imagePreview: {
         width: '100%',

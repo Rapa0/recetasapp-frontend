@@ -22,7 +22,7 @@ const GroupDetailScreen = () => {
               return;
           }
           const userInfo = JSON.parse(userInfoString);
-          const response = await axios.get(`http://10.0.2.2:5000/api/groups/${group._id}/recipes`, {
+          const response = await axios.get(`recetasapp-backend-production.up.railway.app/api/groups/${group._id}/recipes`, {
             headers: { Authorization: `Bearer ${userInfo.token}` },
           });
           setRecipes(response.data);
@@ -53,7 +53,6 @@ const GroupDetailScreen = () => {
             />
             <View style={styles.recipeContent}>
               <Text style={styles.recipeTitle}>{item.title}</Text>
-              {/* 👇 AQUÍ ESTABA EL ERROR. Se añade '?. ' y un texto alternativo. */}
               <Text style={styles.recipeUser}>Por: {item.user?.username || 'Usuario Eliminado'}</Text>
             </View>
           </TouchableOpacity>

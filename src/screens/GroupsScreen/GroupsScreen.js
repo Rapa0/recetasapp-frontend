@@ -12,7 +12,6 @@ const GroupsScreen = () => {
   const [loading, setLoading] = useState(true);
 
   const fetchGroups = async () => {
-    // Se establece en `true` al inicio de la carga para mostrar el indicador
     setLoading(true); 
     try {
       const userInfoString = await AsyncStorage.getItem('userInfo');
@@ -21,8 +20,7 @@ const GroupsScreen = () => {
       }
       const userInfo = JSON.parse(userInfoString);
       
-      //      👇 AQUÍ ESTABA EL ERROR. Se cambió la URL a la ruta correcta.
-      const response = await axios.get('http://10.0.2.2:5000/api/groups/mygroups', {
+      const response = await axios.get('recetasapp-backend-production.up.railway.app/api/groups/mygroups', {
         headers: { Authorization: `Bearer ${userInfo.token}` },
       });
       setGroups(response.data);
@@ -51,10 +49,10 @@ const GroupsScreen = () => {
           onPress: async () => {
             try {
               const userInfo = JSON.parse(await AsyncStorage.getItem('userInfo'));
-              await axios.delete(`http://10.0.2.2:5000/api/groups/${groupId}`, {
+              await axios.delete(`recetasapp-backend-production.up.railway.app/api/groups/${groupId}`, {
                 headers: { Authorization: `Bearer ${userInfo.token}` },
               });
-              fetchGroups(); // Recarga la lista de grupos
+              fetchGroups(); 
             } catch (error) {
               Alert.alert('Error', 'No se pudo eliminar el grupo.');
             }
