@@ -5,7 +5,6 @@ import {
   useWindowDimensions,
   ScrollView,
   Alert,
-  View,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import apiClient from '../../api/axios'; 
@@ -56,38 +55,36 @@ const SignInScreen = () => {
   };
 
   return (
-    <ScrollView showsVerticalScrollIndicator={false}>
-      <View style={styles.root}>
-        <Image
-          source={Logo}
-          style={[styles.logo, { height: height * 0.3 }]}
-          resizeMode="contain"
-        />
-        <CustomInput
-          placeholder="Correo Electrónico"
-          value={email}
-          setValue={setEmail}
-          keyboardType="email-address"
-        />
-        <CustomInput
-          placeholder="Contraseña"
-          value={password}
-          setValue={setPassword}
-          secureTextEntry={true}
-        />
-        <CustomButton text="Iniciar Sesión" onPress={onSignInPressed} />
-        <CustomButton
-          text="¿Olvidaste tu contraseña?"
-          onPress={onForgotPasswordPressed}
-          type="TERTIARY"
-        />
-        <SocialSignInButtons />
-        <CustomButton
-          text="¿No tienes una cuenta? Crea una"
-          onPress={onSignUpPressed}
-          type="TERTIARY"
-        />
-      </View>
+    <ScrollView contentContainerStyle={styles.root}>
+      <Image
+        source={Logo}
+        style={[styles.logo, { height: height * 0.3 }]}
+        resizeMode="contain"
+      />
+      <CustomInput
+        placeholder="Correo Electrónico"
+        value={email}
+        setValue={setEmail}
+        keyboardType="email-address"
+      />
+      <CustomInput
+        placeholder="Contraseña"
+        value={password}
+        setValue={setPassword}
+        secureTextEntry={true}
+      />
+      <CustomButton text="Iniciar Sesión" onPress={onSignInPressed} />
+      <CustomButton
+        text="¿Olvidaste tu contraseña?"
+        onPress={onForgotPasswordPressed}
+        type="TERTIARY"
+      />
+      <SocialSignInButtons />
+      <CustomButton
+        text="¿No tienes una cuenta? Crea una"
+        onPress={onSignUpPressed}
+        type="TERTIARY"
+      />
     </ScrollView>
   );
 };
@@ -96,6 +93,8 @@ const styles = StyleSheet.create({
   root: {
     alignItems: 'center',
     padding: 20,
+    flexGrow: 1,
+    justifyContent: 'center',
   },
   logo: {
     width: '70%',
