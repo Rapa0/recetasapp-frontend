@@ -11,7 +11,7 @@ const HomeScreen = () => {
 
   const fetchRecipes = async () => {
     try {
-      const response = await axios.get('recetasapp-backend-production.up.railway.app/api/recipes');
+      const response = await axios.get('https://recetasapp-backend-production.up.railway.app/api/recipes');
       setRecipes(response.data);
     } catch (error) {
       Alert.alert('Error', 'No se pudieron cargar las recetas');

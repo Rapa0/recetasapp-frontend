@@ -24,7 +24,7 @@ const NewPasswordScreen = () => {
     try {
       const code = route.params?.code;
       await axios.patch(
-        `recetasapp-backend-production.up.railway.app/api/auth/resetpassword/${code}`,
+        `https://recetasapp-backend-production.up.railway.app/api/auth/resetpassword/${code}`,
         {password: newPassword},
       );
 

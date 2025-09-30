@@ -29,7 +29,7 @@ const SignUpScreen = () => {
 
     try {
       await axios.post(
-        'recetasapp-backend-production.up.railway.app/api/auth/register',
+        'https://recetasapp-backend-production.up.railway.app/api/auth/register',
         {
           username,
           email,

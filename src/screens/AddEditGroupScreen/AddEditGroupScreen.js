@@ -25,16 +25,15 @@ const AddEditGroupScreen = () => {
       const token = userInfo?.token;
 
       if (group) {
-        // Lógica para Editar
+
         await axios.put(
-          `recetasapp-backend-production.up.railway.app/api/groups/${group._id}`,
+          `https://recetasapp-backend-production.up.railway.app/api/groups/${group._id}`,
           { name },
           { headers: { Authorization: `Bearer ${token}` } },
         );
       } else {
-        // Lógica para Crear
         await axios.post(
-          'recetasapp-backend-production.up.railway.app/api/groups',
+          'https://recetasapp-backend-production.up.railway.app/api/groups',
           { name },
           { headers: { Authorization: `Bearer ${token}` } },
         );

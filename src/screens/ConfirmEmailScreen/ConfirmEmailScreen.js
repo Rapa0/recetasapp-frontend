@@ -15,7 +15,7 @@ const ConfirmEmailScreen = () => {
         return;
     }
     try {
-        await axios.post('recetasapp-backend-production.up.railway.app/api/auth/confirmemail', {token: code});
+        await axios.post('https://recetasapp-backend-production.up.railway.app/api/auth/confirmemail', {token: code});
         Alert.alert('Éxito', 'Tu cuenta ha sido confirmada. Ahora puedes iniciar sesión.');
         navigation.navigate('SignIn');
     } catch (error) {

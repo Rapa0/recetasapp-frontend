@@ -22,7 +22,7 @@ const GroupDetailScreen = () => {
               return;
           }
           const userInfo = JSON.parse(userInfoString);
-          const response = await axios.get(`recetasapp-backend-production.up.railway.app/api/groups/${group._id}/recipes`, {
+          const response = await axios.get(`https://recetasapp-backend-production.up.railway.app/api/groups/${group._id}/recipes`, {
             headers: { Authorization: `Bearer ${userInfo.token}` },
           });
           setRecipes(response.data);

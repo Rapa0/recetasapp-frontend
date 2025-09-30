@@ -5,9 +5,10 @@ import {
   useWindowDimensions,
   ScrollView,
   Alert,
+  View,
 } from 'react-native';
-import {useNavigation} from '@react-navigation/native';
-import axios from 'axios';
+import { useNavigation } from '@react-navigation/native';
+import apiClient from '../../api/axios'; 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import Logo from '../../../assets/images/logo.png';
@@ -16,24 +17,27 @@ import CustomButton from '../../components/CustomButton';
 import SocialSignInButtons from '../../components/SocialSignInButtons';
 
 const SignInScreen = () => {
-  const {height} = useWindowDimensions();
+  const { height } = useWindowDimensions();
   const navigation = useNavigation();
 
-  const [username, setUsername] = React.useState('');
+  const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
 
   const onSignInPressed = async () => {
+    if (!email || !password) {
+      Alert.alert('Campos Incompletos', 'Por favor, introduce tu correo y contraseña.');
+      return;
+    }
     try {
-      const response = await axios.post(
-        'recetasapp-backend-production.up.railway.app/api/auth/login',
-        {
-          email: username,
-          password: password,
-        },
-      );
+
+      const response = await apiClient.post('/auth/login', {
+        email: email,
+        password: password,
+      });
       
       await AsyncStorage.setItem('userInfo', JSON.stringify(response.data));
-      navigation.navigate('Home');
+      
+      navigation.replace('Home');
 
     } catch (error) {
       Alert.alert(
@@ -52,35 +56,38 @@ const SignInScreen = () => {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.root}>
-      <Image
-        source={Logo}
-        style={[styles.logo, {height: height * 0.3}]}
-        resizeMode="contain"
-      />
-      <CustomInput
-        placeholder="Correo Electrónico"
-        value={username}
-        setValue={setUsername}
-      />
-      <CustomInput
-        placeholder="Contraseña"
-        value={password}
-        setValue={setPassword}
-        secureTextEntry={true}
-      />
-      <CustomButton text="Iniciar Sesión" onPress={onSignInPressed} />
-      <CustomButton
-        text="¿Olvidaste tu contraseña?"
-        onPress={onForgotPasswordPressed}
-        type="TERTIARY"
-      />
-      <SocialSignInButtons />
-      <CustomButton
-        text="¿No tienes una cuenta? Crea una"
-        onPress={onSignUpPressed}
-        type="TERTIARY"
-      />
+    <ScrollView showsVerticalScrollIndicator={false}>
+      <View style={styles.root}>
+        <Image
+          source={Logo}
+          style={[styles.logo, { height: height * 0.3 }]}
+          resizeMode="contain"
+        />
+        <CustomInput
+          placeholder="Correo Electrónico"
+          value={email}
+          setValue={setEmail}
+          keyboardType="email-address"
+        />
+        <CustomInput
+          placeholder="Contraseña"
+          value={password}
+          setValue={setPassword}
+          secureTextEntry={true}
+        />
+        <CustomButton text="Iniciar Sesión" onPress={onSignInPressed} />
+        <CustomButton
+          text="¿Olvidaste tu contraseña?"
+          onPress={onForgotPasswordPressed}
+          type="TERTIARY"
+        />
+        <SocialSignInButtons />
+        <CustomButton
+          text="¿No tienes una cuenta? Crea una"
+          onPress={onSignUpPressed}
+          type="TERTIARY"
+        />
+      </View>
     </ScrollView>
   );
 };
@@ -89,8 +96,6 @@ const styles = StyleSheet.create({
   root: {
     alignItems: 'center',
     padding: 20,
-    flexGrow: 1,
-    justifyContent: 'center',
   },
   logo: {
     width: '70%',

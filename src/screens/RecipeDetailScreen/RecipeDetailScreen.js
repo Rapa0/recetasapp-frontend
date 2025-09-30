@@ -28,7 +28,7 @@ const RecipeDetailScreen = () => {
           const info = await AsyncStorage.getItem('userInfo');
           if (info) setUserInfo(JSON.parse(info));
           
-          const recipeRes = await axios.get(`recetasapp-backend-production.up.railway.app/api/recipes/${recipeId}`);
+          const recipeRes = await axios.get(`https://recetasapp-backend-production.up.railway.app/api/recipes/${recipeId}`);
           setRecipe(recipeRes.data);
           setLikeCount(recipeRes.data.likes.length);
 
@@ -55,7 +55,7 @@ const RecipeDetailScreen = () => {
         if (!token) {
             return Alert.alert('Error', 'Debes iniciar sesión para dar Me Gusta.');
         }
-        const response = await axios.post(`recetasapp-backend-production.up.railway.app/api/recipes/${recipeId}/like`, {}, {
+        const response = await axios.post(`https://recetasapp-backend-production.up.railway.app/api/recipes/${recipeId}/like`, {}, {
             headers: { Authorization: `Bearer ${token}` }
         });
         setIsLiked(!isLiked);
@@ -77,7 +77,7 @@ const RecipeDetailScreen = () => {
           onPress: async () => {
             try {
               const token = userInfo?.token;
-              await axios.delete(`recetasapp-backend-production.up.railway.app/api/recipes/${recipeId}`, {
+              await axios.delete(`https://recetasapp-backend-production.up.railway.app/api/recipes/${recipeId}`, {
                 headers: { Authorization: `Bearer ${token}` }
               });
               Alert.alert('Éxito', 'Receta eliminada.');
@@ -93,7 +93,7 @@ const RecipeDetailScreen = () => {
   
   const refreshData = async () => {
     try {
-        const recipeRes = await axios.get(`recetasapp-backend-production.up.railway.app/api/recipes/${recipeId}`);
+        const recipeRes = await axios.get(`https://recetasapp-backend-production.up.railway.app/api/recipes/${recipeId}`);
         setRecipe(recipeRes.data);
     } catch (error) {
         console.error("No se pudo refrescar la receta", error);
@@ -113,11 +113,11 @@ const RecipeDetailScreen = () => {
       const config = { headers: { Authorization: `Bearer ${token}` } };
 
       const addPromises = groupsToAdd.map(groupId =>
-        axios.post(`recetasapp-backend-production.up.railway.app/api/groups/${groupId}/addRecipe`, { recipeId }, config)
+        axios.post(`https://recetasapp-backend-production.up.railway.app/api/groups/${groupId}/addRecipe`, { recipeId }, config)
       );
       
       const removePromises = groupsToRemove.map(groupId =>
-        axios.post(`recetasapp-backend-production.up.railway.app/api/groups/${groupId}/removeRecipe`, { recipeId }, config)
+        axios.post(`https://recetasapp-backend-production.up.railway.app/api/groups/${groupId}/removeRecipe`, { recipeId }, config)
       );
 
       await Promise.all([...addPromises, ...removePromises]);

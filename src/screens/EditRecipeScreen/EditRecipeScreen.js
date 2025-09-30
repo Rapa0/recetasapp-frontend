@@ -24,7 +24,7 @@ const EditRecipeScreen = () => {
     useEffect(() => {
         const fetchRecipe = async () => {
             try {
-                const response = await axios.get(`recetasapp-backend-production.up.railway.app/api/recipes/${recipeId}`);
+                const response = await axios.get(`https://recetasapp-backend-production.up.railway.app/api/recipes/${recipeId}`);
                 const recipeData = response.data;
                 setTitle(recipeData.title);
                 setDescription(recipeData.description);
@@ -84,7 +84,7 @@ const EditRecipeScreen = () => {
             const token = userInfo?.token;
 
             await axios.put(
-                `recetasapp-backend-production.up.railway.app/api/recipes/${recipeId}`,
+                `https://recetasapp-backend-production.up.railway.app/api/recipes/${recipeId}`,
                 { 
                     title, 
                     description, 

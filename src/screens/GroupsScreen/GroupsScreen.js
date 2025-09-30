@@ -20,7 +20,7 @@ const GroupsScreen = () => {
       }
       const userInfo = JSON.parse(userInfoString);
       
-      const response = await axios.get('recetasapp-backend-production.up.railway.app/api/groups/mygroups', {
+      const response = await axios.get('https://recetasapp-backend-production.up.railway.app/api/groups/mygroups', {
         headers: { Authorization: `Bearer ${userInfo.token}` },
       });
       setGroups(response.data);
@@ -49,7 +49,7 @@ const GroupsScreen = () => {
           onPress: async () => {
             try {
               const userInfo = JSON.parse(await AsyncStorage.getItem('userInfo'));
-              await axios.delete(`recetasapp-backend-production.up.railway.app/api/groups/${groupId}`, {
+              await axios.delete(`https://recetasapp-backend-production.up.railway.app/api/groups/${groupId}`, {
                 headers: { Authorization: `Bearer ${userInfo.token}` },
               });
               fetchGroups(); 

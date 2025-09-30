@@ -57,7 +57,7 @@ const AddRecipeScreen = () => {
             const token = userInfo?.token;
 
             await axios.post(
-                'recetasapp-backend-production.up.railway.app/api/recipes',
+                'https://recetasapp-backend-production.up.railway.app/api/recipes',
                 { 
                     title, 
                     description, 

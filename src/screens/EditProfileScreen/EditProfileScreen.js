@@ -16,7 +16,7 @@ const EditProfileScreen = () => {
         const fetchProfile = async () => {
             try {
                 const userInfo = JSON.parse(await AsyncStorage.getItem('userInfo'));
-                const response = await axios.get('recetasapp-backend-production.up.railway.app/api/users/profile', {
+                const response = await axios.get('https://recetasapp-backend-production.up.railway.app/api/users/profile', {
                     headers: { Authorization: `Bearer ${userInfo.token}` },
                 });
                 setUsername(response.data.username);
@@ -34,7 +34,7 @@ const EditProfileScreen = () => {
         try {
             const userInfo = JSON.parse(await AsyncStorage.getItem('userInfo'));
             await axios.put(
-                'recetasapp-backend-production.up.railway.app/api/users/profile',
+                'https://recetasapp-backend-production.up.railway.app/api/users/profile',
                 { username, email },
                 { headers: { Authorization: `Bearer ${userInfo.token}` } }
             );

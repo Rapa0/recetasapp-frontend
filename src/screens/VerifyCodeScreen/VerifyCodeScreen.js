@@ -11,7 +11,7 @@ const VerifyCodeScreen = () => {
 
   const onVerifyPressed = async () => {
     try {
-      await axios.post('recetasapp-backend-production.up.railway.app/api/auth/verifyresetcode', { code });
+      await axios.post('https://recetasapp-backend-production.up.railway.app/api/auth/verifyresetcode', { code });
 
       navigation.navigate('NewPassword', { code: code });
     } catch (error) {
