@@ -2,17 +2,24 @@ import React, {useState} from 'react';
 import {View, TextInput, StyleSheet, Pressable} from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons'; 
 
-const CustomInput = ({value, setValue, placeholder, secureTextEntry}) => {
+const CustomInput = ({value, setValue, placeholder, secureTextEntry, multiline, keyboardType, customStyles}) => {
   const [isPasswordVisible, setIsPasswordVisible] = useState(!secureTextEntry);
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, customStyles]}>
       <TextInput
         value={value}
         onChangeText={setValue}
         placeholder={placeholder}
         style={styles.input}
         secureTextEntry={!isPasswordVisible}
+        
+        // 👇 LA SOLUCIÓN: Añadir esta línea asegura que el placeholder sea visible.
+        placeholderTextColor="gray"
+
+        // <-- He añadido estas para que tu componente sea más versátil -->
+        multiline={multiline}
+        keyboardType={keyboardType || 'default'}
       />
       {secureTextEntry && (
         <Pressable onPress={() => setIsPasswordVisible(!isPasswordVisible)}>
@@ -42,7 +49,8 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1, 
-    height: 50,
+    minHeight: 50,
+    paddingVertical: 10,
   },
   icon: {
     padding: 5,
