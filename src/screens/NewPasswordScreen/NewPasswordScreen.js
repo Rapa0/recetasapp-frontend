@@ -1,7 +1,7 @@
 import React from 'react';
 import {Text, StyleSheet, ScrollView, Alert} from 'react-native';
 import {useNavigation, useRoute} from '@react-navigation/native';
-import axios from 'axios';
+import apiClient from '../../api/axios'; 
 import CustomInput from '../../components/CustomInput';
 import CustomButton from '../../components/CustomButton';
 
@@ -10,6 +10,7 @@ const NewPasswordScreen = () => {
   const route = useRoute();
   const [newPassword, setNewPassword] = React.useState('');
   const [newPasswordRepeat, setNewPasswordRepeat] = React.useState('');
+  const [loading, setLoading] = React.useState(false);
 
   const onSubmitPressed = async () => {
     if (newPassword.length < 6) {
@@ -21,17 +22,31 @@ const NewPasswordScreen = () => {
         return;
     }
 
+    setLoading(true);
     try {
       const code = route.params?.code;
-      await axios.patch(
-        `https://recetasapp-backend-production.up.railway.app/api/auth/resetpassword/${code}`,
-        {password: newPassword},
+      if (!code) {
+          Alert.alert('Error', 'No se encontró el código de verificación. Por favor, inténtalo de nuevo.');
+          setLoading(false);
+          return;
+      }
+
+
+      await apiClient.put(
+        '/auth/resetpassword',
+        {
+          code: code,
+          password: newPassword
+        },
       );
 
       Alert.alert('Éxito', 'Tu contraseña ha sido restablecida. Por favor, inicia sesión.');
       navigation.navigate('SignIn');
+
     } catch (error) {
       Alert.alert('Error', error.response?.data?.message || 'Ocurrió un error');
+    } finally {
+        setLoading(false);
     }
   };
 
@@ -50,7 +65,11 @@ const NewPasswordScreen = () => {
         setValue={setNewPasswordRepeat}
         secureTextEntry
       />
-      <CustomButton text="Restablecer" onPress={onSubmitPressed} />
+      <CustomButton 
+        text={loading ? "Restableciendo..." : "Restablecer"} 
+        onPress={onSubmitPressed} 
+        disabled={loading}
+      />
     </ScrollView>
   );
 };

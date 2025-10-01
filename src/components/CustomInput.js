@@ -11,7 +11,10 @@ const CustomInput = ({value, setValue, placeholder, secureTextEntry, multiline, 
         value={value}
         onChangeText={setValue}
         placeholder={placeholder}
-        style={styles.input}
+        style={[
+            styles.input,
+            secureTextEntry && !isPasswordVisible && styles.secureInput
+        ]}
         secureTextEntry={!isPasswordVisible}
         placeholderTextColor="gray"
         multiline={multiline}
@@ -48,7 +51,12 @@ const styles = StyleSheet.create({
     minHeight: 50,
     paddingVertical: 10,
     fontSize: 16,
-    letterSpacing: 0.5, 
+    letterSpacing: 0.5,
+    color: 'black', 
+  },
+
+  secureInput: {
+    fontFamily: 'monospace',
   },
   icon: {
     padding: 5,
