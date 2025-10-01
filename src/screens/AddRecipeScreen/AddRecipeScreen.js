@@ -1,11 +1,21 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Alert, Image, TouchableOpacity, ActivityIndicator } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  Alert,
+  Image,
+  TouchableOpacity,
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+} from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import axios from 'axios';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { launchImageLibrary } from 'react-native-image-picker';
-import CustomInput from '../../components/CustomInput';
-import CustomButton from '../../components/CustomButton';
+import apiClient from '../api/axios';
+import CustomInput from '../components/CustomInput';
+import CustomButton from '../components/CustomButton';
 import Icon from 'react-native-vector-icons/Ionicons';
 
 const AddRecipeScreen = () => {
@@ -16,7 +26,6 @@ const AddRecipeScreen = () => {
     const [instructions, setInstructions] = useState('');
     const [imageData, setImageData] = useState(null);
     const [imageUri, setImageUri] = useState(null);
-
     const [loading, setLoading] = useState(false);
 
     const handleChoosePhoto = () => {
@@ -27,11 +36,9 @@ const AddRecipeScreen = () => {
         };
 
         launchImageLibrary(options, (response) => {
-            if (response.didCancel) {
-                console.log('User cancelled image picker');
-            } else if (response.errorCode) {
+            if (response.didCancel) return;
+            if (response.errorCode) {
                 Alert.alert('Error', 'Ocurrió un error al seleccionar la imagen.');
-                console.log('ImagePicker Error: ', response.errorCode, response.errorMessage);
             } else if (response.assets && response.assets.length > 0) {
                 const asset = response.assets[0];
                 setImageUri(asset.uri);
@@ -46,41 +53,25 @@ const AddRecipeScreen = () => {
             return;
         }
 
-        setLoading(true); 
+        setLoading(true);
         try {
-            const userInfoString = await AsyncStorage.getItem('userInfo');
-            if (!userInfoString) {
-                Alert.alert('Error', 'No estás autenticado. Por favor, inicia sesión de nuevo.');
-                return;
-            }
-            const userInfo = JSON.parse(userInfoString);
-            const token = userInfo?.token;
-
-            await axios.post(
-                'https://recetasapp-backend-production.up.railway.app/api/recipes',
-                { 
-                    title, 
-                    description, 
-                    ingredients: ingredients.split('\n').filter(i => i.trim() !== ''),
-                    instructions,
-                    imageData
-                },
-                { headers: { Authorization: `Bearer ${token}` } }
-            );
-
+            await apiClient.post('/recipes', { 
+                title, 
+                description, 
+                ingredients: ingredients.split('\n').filter(i => i.trim() !== ''),
+                instructions,
+                imageData
+            });
             Alert.alert('¡Éxito!', 'Tu receta ha sido creada correctamente.', [
                 { text: 'OK', onPress: () => navigation.navigate('Home') }
             ]);
-
         } catch (error) {
-            console.error(error.response || error);
             Alert.alert('Error', error.response?.data?.message || 'No se pudo crear la receta.');
         } finally {
-            setLoading(false); 
+            setLoading(false);
         }
     };
-
-
+    
     if (loading) {
         return (
             <View style={styles.loaderContainer}>
@@ -91,45 +82,55 @@ const AddRecipeScreen = () => {
     }
 
     return (
-        <ScrollView contentContainerStyle={styles.root}>
-            <Text style={styles.title}>Añadir Nueva Receta</Text>
-            
-            <TouchableOpacity onPress={handleChoosePhoto} style={styles.imagePicker}>
-                {imageUri ? (
-                    <Image source={{ uri: imageUri }} style={styles.imagePreview} />
-                ) : (
-                    <View style={styles.placeholder}>
-                        <Icon name="camera-outline" size={40} color="gray" />
-                        <Text style={styles.placeholderText}>Añadir Foto (Opcional)</Text>
-                    </View>
-                )}
-            </TouchableOpacity>
+        <KeyboardAvoidingView
+            style={styles.keyboardAvoidingContainer}
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        >
+            <ScrollView contentContainerStyle={styles.root}>
+                <Text style={styles.title}>Añadir Nueva Receta</Text>
+                
+                <TouchableOpacity onPress={handleChoosePhoto} style={styles.imagePicker}>
+                    {imageUri ? (
+                        <Image source={{ uri: imageUri }} style={styles.imagePreview} />
+                    ) : (
+                        <View style={styles.placeholder}>
+                            <Icon name="camera-outline" size={40} color="gray" />
+                            <Text style={styles.placeholderText}>Añadir Foto (Opcional)</Text>
+                        </View>
+                    )}
+                </TouchableOpacity>
 
-            <CustomInput placeholder="Título" value={title} setValue={setTitle} />
-            <CustomInput 
-                placeholder="Descripción corta" 
-                value={description} 
-                setValue={setDescription} 
-            />
-            <CustomInput 
-                placeholder="Ingredientes (uno por línea)" 
-                value={ingredients} 
-                setValue={setIngredients} 
-                multiline 
-            />
-            <CustomInput 
-                placeholder="Instrucciones" 
-                value={instructions} 
-                setValue={setInstructions} 
-                multiline
-            />
-            <CustomButton text="Añadir Receta" onPress={onAddRecipePressed} />
-            <CustomButton text="Cancelar" onPress={() => navigation.goBack()} type="TERTIARY" />
-        </ScrollView>
+                <CustomInput placeholder="Título" value={title} setValue={setTitle} />
+                <CustomInput 
+                    placeholder="Descripción corta" 
+                    value={description} 
+                    setValue={setDescription} 
+                />
+                <CustomInput 
+                    placeholder="Ingredientes (uno por línea)" 
+                    value={ingredients} 
+                    setValue={setIngredients} 
+                    multiline
+                    customStyles={styles.inputIngredients}
+                />
+                <CustomInput 
+                    placeholder="Instrucciones" 
+                    value={instructions} 
+                    setValue={setInstructions} 
+                    multiline
+                    customStyles={styles.inputInstructions}
+                />
+                <CustomButton text="Añadir Receta" onPress={onAddRecipePressed} disabled={loading} />
+                <CustomButton text="Cancelar" onPress={() => navigation.goBack()} type="TERTIARY" disabled={loading} />
+            </ScrollView>
+        </KeyboardAvoidingView>
     );
 };
 
 const styles = StyleSheet.create({
+    keyboardAvoidingContainer: {
+        flex: 1,
+    },
     root: {
         alignItems: 'center',
         padding: 20,
@@ -138,6 +139,14 @@ const styles = StyleSheet.create({
         fontSize: 24,
         fontWeight: 'bold',
         marginBottom: 20,
+    },
+    inputIngredients: {
+      height: 120,
+      textAlignVertical: 'top',
+    },
+    inputInstructions: {
+      height: 200,
+      textAlignVertical: 'top',
     },
     imagePicker: {
         width: '100%',

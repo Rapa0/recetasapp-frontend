@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, Alert, ActivityIndicator, Image, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Alert, ActivityIndicator, Image, TouchableOpacity, KeyboardAvoidingView, Platform } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
-import axios from 'axios';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { launchImageLibrary } from 'react-native-image-picker'; 
+import { launchImageLibrary } from 'react-native-image-picker';
+import apiClient from '../../api/axios';
 import CustomInput from '../../components/CustomInput';
 import CustomButton from '../../components/CustomButton';
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -17,20 +16,21 @@ const EditRecipeScreen = () => {
     const [description, setDescription] = useState('');
     const [ingredients, setIngredients] = useState('');
     const [instructions, setInstructions] = useState('');
-    const [imageData, setImageData] = useState(null); 
+    
     const [imageUri, setImageUri] = useState(null); 
+    const [imageData, setImageData] = useState(undefined); 
+    
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const fetchRecipe = async () => {
             try {
-                const response = await axios.get(`https://recetasapp-backend-production.up.railway.app/api/recipes/${recipeId}`);
-                const recipeData = response.data;
-                setTitle(recipeData.title);
-                setDescription(recipeData.description);
-                setIngredients(recipeData.ingredients.join('\n'));
-                setInstructions(recipeData.instructions);
-                setImageUri(recipeData.imageUrl); 
+                const { data } = await apiClient.get(`/recipes/${recipeId}`);
+                setTitle(data.title);
+                setDescription(data.description);
+                setIngredients(data.ingredients.join('\n'));
+                setInstructions(data.instructions);
+                setImageUri(data.imageUrl); 
             } catch (error) {
                 Alert.alert('Error', 'No se pudo cargar la receta para editar.');
                 navigation.goBack();
@@ -43,23 +43,21 @@ const EditRecipeScreen = () => {
 
     const handleChoosePhoto = () => {
         launchImageLibrary({ mediaType: 'photo', includeBase64: true, quality: 0.5 }, (response) => {
-          if (response.didCancel) {
-            console.log('User cancelled image picker');
-          } else if (response.errorCode) {
-            Alert.alert('Error', 'Ocurrió un error al seleccionar la imagen.');
-            console.log('ImagePicker Error: ', response.errorCode);
-          } else if (response.assets && response.assets.length > 0) {
-            const asset = response.assets[0];
-            setImageUri(asset.uri); 
-            setImageData(`data:${asset.type};base64,${asset.base64}`);
-          }
+            if (response.didCancel) return;
+            if (response.errorCode) return Alert.alert('Error', 'Ocurrió un error al seleccionar la imagen.');
+            
+            if (response.assets && response.assets.length > 0) {
+                const asset = response.assets[0];
+                setImageUri(asset.uri); 
+                setImageData(`data:${asset.type};base64,${asset.base64}`); 
+            }
         });
-      };
+    };
 
     const removeImage = () => {
         Alert.alert(
             "Eliminar Imagen",
-            "¿Estás seguro de que quieres eliminar la imagen de esta receta? Se perderá al guardar.",
+            "¿Estás seguro de que quieres eliminar la imagen de esta receta?",
             [
                 { text: "Cancelar", style: "cancel" },
                 { 
@@ -79,25 +77,26 @@ const EditRecipeScreen = () => {
             Alert.alert('Error', 'El título, los ingredientes y las instrucciones son obligatorios.');
             return;
         }
+        setLoading(true);
         try {
-            const userInfo = JSON.parse(await AsyncStorage.getItem('userInfo'));
-            const token = userInfo?.token;
+            const payload = { 
+                title, 
+                description, 
+                ingredients: ingredients.split('\n').filter(i => i.trim() !== ''), 
+                instructions,
+            };
 
-            await axios.put(
-                `https://recetasapp-backend-production.up.railway.app/api/recipes/${recipeId}`,
-                { 
-                    title, 
-                    description, 
-                    ingredients: ingredients.split('\n'), 
-                    instructions,
-                    imageData: imageData 
-                },
-                { headers: { Authorization: `Bearer ${token}` } }
-            );
+            if (imageData !== undefined) {
+                payload.imageData = imageData;
+            }
+
+            await apiClient.put(`/recipes/${recipeId}`, payload);
             Alert.alert('Éxito', 'Receta actualizada correctamente.');
             navigation.goBack();
         } catch (error) {
             Alert.alert('Error', error.response?.data?.message || 'No se pudo actualizar la receta.');
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -106,50 +105,55 @@ const EditRecipeScreen = () => {
     }
 
     return (
-        <ScrollView contentContainerStyle={styles.root}>
-            <Text style={styles.title}>Editar Receta</Text>
-            
-            <TouchableOpacity onPress={handleChoosePhoto} style={styles.imagePicker}>
-                {imageUri ? (
-                    <>
-                        <Image source={{ uri: imageUri }} style={styles.imagePreview} />
-                        <TouchableOpacity onPress={removeImage} style={styles.removeImageButton}>
-                            <Icon name="close-circle" size={30} color="red" />
-                        </TouchableOpacity>
-                    </>
-                ) : (
-                    <View style={styles.placeholder}>
-                        <Icon name="camera-outline" size={40} color="gray" />
-                        <Text style={styles.placeholderText}>Añadir Foto (Opcional)</Text>
-                    </View>
-                )}
-            </TouchableOpacity>
+        <KeyboardAvoidingView style={styles.keyboardAvoidingContainer} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+            <ScrollView contentContainerStyle={styles.root}>
+                <Text style={styles.title}>Editar Receta</Text>
+                
+                <TouchableOpacity onPress={handleChoosePhoto} style={styles.imagePicker}>
+                    {imageUri ? (
+                        <>
+                            <Image source={{ uri: imageUri }} style={styles.imagePreview} />
+                            <TouchableOpacity onPress={removeImage} style={styles.removeImageButton}>
+                                <Icon name="close-circle" size={30} color="#E53935" />
+                            </TouchableOpacity>
+                        </>
+                    ) : (
+                        <View style={styles.placeholder}>
+                            <Icon name="camera-outline" size={40} color="gray" />
+                            <Text style={styles.placeholderText}>Añadir Foto (Opcional)</Text>
+                        </View>
+                    )}
+                </TouchableOpacity>
 
-            <CustomInput placeholder="Título" value={title} setValue={setTitle} />
-            <CustomInput 
-                placeholder="Descripción corta" 
-                value={description} 
-                setValue={setDescription} 
-            />
-            <CustomInput 
-                placeholder="Ingredientes (uno por línea)" 
-                value={ingredients} 
-                setValue={setIngredients} 
-                multiline 
-            />
-            <CustomInput 
-                placeholder="Instrucciones" 
-                value={instructions} 
-                setValue={setInstructions} 
-                multiline
-            />
-            <CustomButton text="Guardar Cambios" onPress={onSaveChangesPressed} />
-            <CustomButton text="Cancelar" onPress={() => navigation.goBack()} type="TERTIARY" />
-        </ScrollView>
+                <CustomInput placeholder="Título" value={title} setValue={setTitle} />
+                <CustomInput 
+                    placeholder="Descripción corta" 
+                    value={description} 
+                    setValue={setDescription} 
+                />
+                <CustomInput 
+                    placeholder="Ingredientes (uno por línea)" 
+                    value={ingredients} 
+                    setValue={setIngredients} 
+                    multiline 
+                />
+                <CustomInput 
+                    placeholder="Instrucciones" 
+                    value={instructions} 
+                    setValue={setInstructions} 
+                    multiline
+                />
+                <CustomButton text="Guardar Cambios" onPress={onSaveChangesPressed} disabled={loading} />
+                <CustomButton text="Cancelar" onPress={() => navigation.goBack()} type="TERTIARY" disabled={loading} />
+            </ScrollView>
+        </KeyboardAvoidingView>
     );
 };
 
 const styles = StyleSheet.create({
+    keyboardAvoidingContainer: {
+        flex: 1,
+    },
     root: {
         alignItems: 'center',
         padding: 20,
