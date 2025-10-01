@@ -13,11 +13,7 @@ const CustomInput = ({value, setValue, placeholder, secureTextEntry, multiline, 
         placeholder={placeholder}
         style={styles.input}
         secureTextEntry={!isPasswordVisible}
-        
-        // 👇 LA SOLUCIÓN: Añadir esta línea asegura que el placeholder sea visible.
         placeholderTextColor="gray"
-
-        // <-- He añadido estas para que tu componente sea más versátil -->
         multiline={multiline}
         keyboardType={keyboardType || 'default'}
       />
@@ -51,6 +47,7 @@ const styles = StyleSheet.create({
     flex: 1, 
     minHeight: 50,
     paddingVertical: 10,
+    fontSize: 16,
   },
   icon: {
     padding: 5,
