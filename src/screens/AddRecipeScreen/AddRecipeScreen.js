@@ -13,9 +13,9 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { launchImageLibrary } from 'react-native-image-picker';
-import apiClient from '../api/axios';
-import CustomInput from '../components/CustomInput';
-import CustomButton from '../components/CustomButton';
+import apiClient from '../../api/axios'; 
+import CustomInput from '../../components/CustomInput';
+import CustomButton from '../../components/CustomButton';
 import Icon from 'react-native-vector-icons/Ionicons';
 
 const AddRecipeScreen = () => {
