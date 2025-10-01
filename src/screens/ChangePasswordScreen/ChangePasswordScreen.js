@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { ScrollView, Text, StyleSheet, Alert } from 'react-native';
+import { ScrollView, Text, StyleSheet, Alert, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+
+import apiClient from '../../api/axios';
 import CustomInput from '../../components/CustomInput';
 import CustomButton from '../../components/CustomButton';
 
@@ -11,43 +12,79 @@ const ChangePasswordScreen = () => {
     const [oldPassword, setOldPassword] = useState('');
     const [newPassword, setNewPassword] = useState('');
     const [newPasswordRepeat, setNewPasswordRepeat] = useState('');
+    const [loading, setLoading] = useState(false);
 
     const onChangePasswordPressed = async () => {
+        if (!oldPassword || !newPassword || !newPasswordRepeat) {
+            Alert.alert('Error', 'Por favor, rellena todos los campos.');
+            return;
+        }
         if (newPassword !== newPasswordRepeat) {
             Alert.alert('Error', 'Las contraseñas nuevas no coinciden.');
             return;
         }
 
+        setLoading(true);
         try {
-            const userInfo = JSON.parse(await AsyncStorage.getItem('userInfo'));
-            await axios.put(
-                'https://recetasapp-backend-production.up.railway.app/api/users/profile/changepassword',
-                { oldPassword, newPassword },
-                { headers: { Authorization: `Bearer ${userInfo.token}` } }
+
+            await apiClient.put(
+                '/users/profile/changepassword',
+                { oldPassword, newPassword }
             );
+
             Alert.alert('Éxito', 'Contraseña actualizada. Por favor, inicia sesión de nuevo.');
             await AsyncStorage.clear();
-            navigation.navigate('SignIn');
+
+            navigation.reset({
+                index: 0,
+                routes: [{ name: 'SignIn' }],
+            });
+
         } catch (error) {
             Alert.alert('Error', error.response?.data?.message || 'No se pudo cambiar la contraseña.');
+        } finally {
+            setLoading(false);
         }
     };
 
     return (
         <ScrollView contentContainerStyle={styles.root}>
-            <Text style={styles.title}>Cambiar Contraseña</Text>
-            <CustomInput placeholder="Contraseña Antigua" value={oldPassword} setValue={setOldPassword} secureTextEntry />
-            <CustomInput placeholder="Nueva Contraseña" value={newPassword} setValue={setNewPassword} secureTextEntry />
-            <CustomInput placeholder="Repetir Nueva Contraseña" value={newPasswordRepeat} setValue={setNewPasswordRepeat} secureTextEntry />
-            <CustomButton text="Cambiar Contraseña" onPress={onChangePasswordPressed} />
-            <CustomButton text="Cancelar" onPress={() => navigation.goBack()} type="TERTIARY" />
+            <View style={styles.container}>
+                <Text style={styles.title}>Cambiar Contraseña</Text>
+                <CustomInput placeholder="Contraseña Antigua" value={oldPassword} setValue={setOldPassword} secureTextEntry />
+                <CustomInput placeholder="Nueva Contraseña" value={newPassword} setValue={setNewPassword} secureTextEntry />
+                <CustomInput placeholder="Repetir Nueva Contraseña" value={newPasswordRepeat} setValue={setNewPasswordRepeat} secureTextEntry />
+      
+                <CustomButton 
+                    text={loading ? "Cambiando..." : "Cambiar Contraseña"} 
+                    onPress={onChangePasswordPressed} 
+                    disabled={loading}
+                />
+                <CustomButton 
+                    text="Cancelar" 
+                    onPress={() => navigation.goBack()} 
+                    type="TERTIARY" 
+                    disabled={loading}
+                />
+            </View>
         </ScrollView>
     );
 };
 
 const styles = StyleSheet.create({
-    root: { alignItems: 'center', padding: 20 },
-    title: { fontSize: 24, fontWeight: 'bold', marginBottom: 20 },
+    root: {
+        flexGrow: 1,
+        justifyContent: 'center',
+    },
+    container: {
+        alignItems: 'center',
+        padding: 20,
+    },
+    title: { 
+        fontSize: 24, 
+        fontWeight: 'bold', 
+        marginBottom: 20 
+    },
 });
 
 export default ChangePasswordScreen;

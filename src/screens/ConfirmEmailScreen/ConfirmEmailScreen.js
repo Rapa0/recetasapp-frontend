@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {Text, StyleSheet, ScrollView, Alert, View} from 'react-native';
 import {useNavigation, useRoute} from '@react-navigation/native';
 import apiClient from '../../api/axios';
@@ -9,10 +9,12 @@ import CustomButton from '../../components/CustomButton';
 const ConfirmEmailScreen = () => {
   const navigation = useNavigation();
   const route = useRoute();
-  const [code, setCode] = React.useState('');
-  const [loading, setLoading] = React.useState(false);
+  const [code, setCode] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [resending, setResending] = useState(false);
 
-  const { registrationToken } = route.params;
+
+  const [currentToken, setCurrentToken] = useState(route.params.registrationToken);
 
   const onConfirmPressed = async () => {
     if (!code) {
@@ -23,13 +25,11 @@ const ConfirmEmailScreen = () => {
     try {
         const response = await apiClient.post('/auth/confirmEmail', {
           code: code,
-          registrationToken: registrationToken,
+          registrationToken: currentToken, 
         });
         
         await AsyncStorage.setItem('userInfo', JSON.stringify(response.data));
-
         Alert.alert('¡Éxito!', 'Tu cuenta ha sido confirmada. ¡Bienvenido!');
-        
         navigation.replace('Home');
     } catch (error) {
         Alert.alert('Error', error.response?.data?.message || 'El código es incorrecto o ha expirado.');
@@ -42,10 +42,19 @@ const ConfirmEmailScreen = () => {
     navigation.navigate('SignIn');
   };
 
-  const onResendPress = () => {
-    Alert.alert('Reenviar Código', 'Para recibir un nuevo código, por favor, vuelve a la pantalla de registro e introduce tus datos de nuevo.', [
-      { text: 'OK', onPress: () => navigation.navigate('SignUp') }
-    ]);
+  const onResendPress = async () => {
+    setResending(true);
+    try {
+        const response = await apiClient.post('/auth/resend-confirmation', {
+            registrationToken: currentToken,
+        });
+        setCurrentToken(response.data.registrationToken);
+        Alert.alert('Éxito', 'Se ha enviado un nuevo código a tu correo.');
+    } catch (error) {
+        Alert.alert('Error', error.response?.data?.message || 'No se pudo reenviar el código.');
+    } finally {
+        setResending(false);
+    }
   };
 
   return (
@@ -58,11 +67,16 @@ const ConfirmEmailScreen = () => {
                 setValue={setCode}
                 keyboardType="numeric"
             />
-            <CustomButton text={loading ? "Confirmando..." : "Confirmar"} onPress={onConfirmPressed} disabled={loading} />
+            <CustomButton 
+                text={loading ? "Confirmando..." : "Confirmar"} 
+                onPress={onConfirmPressed} 
+                disabled={loading || resending}
+            />
             <CustomButton
-                text="Reenviar código"
+                text={resending ? "Enviando..." : "Reenviar código"}
                 onPress={onResendPress}
                 type="SECONDARY"
+                disabled={loading || resending}
             />
             <CustomButton
                 text="Volver a Iniciar Sesión"

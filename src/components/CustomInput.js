@@ -48,6 +48,7 @@ const styles = StyleSheet.create({
     minHeight: 50,
     paddingVertical: 10,
     fontSize: 16,
+    letterSpacing: 0.5, 
   },
   icon: {
     padding: 5,
